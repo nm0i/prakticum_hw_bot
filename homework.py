@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 import time
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import requests
 import telegram
@@ -142,12 +142,15 @@ def main():
     while True:
         timestamp: int = int(time.time())
         last_timestamp: int = timestamp - RETRY_PERIOD - mainloop_period
+
         try:
             practicum_response: Dict = get_api_answer(last_timestamp)
             check_response(practicum_response)
-            for homework in practicum_response.get("homeworks"):
-                log_message: str = parse_status(homework)
-                send_message(bot, log_message)
+            homeworks: List = practicum_response.get("homeworks")
+            if len(homeworks):
+                for homework in homeworks:
+                    log_message: str = parse_status(homework)
+                    send_message(bot, log_message)
             else:
                 log_message: str = "Изменений в статусах домашек нет."
                 logger.debug(log_message)
