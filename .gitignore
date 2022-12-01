@@ -103,6 +103,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.bk
 .venv
 env/
 venv/
@@ -150,3 +151,5 @@ static/
 posts/static/
 media/
 
+.envrc
+.direnv
