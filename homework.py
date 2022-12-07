@@ -61,8 +61,7 @@ def send_message(bot, message: str) -> None:
     try:
         bot.send_message(chat_id=TELEGRAM_CHAT_ID, text=message)
     except telegram.error.TelegramError:
-        logging.error(f"Бот не смог отправить сообщение {message}",
-                      {"tg_error": True})
+        logging.error(f"Бот не смог отправить сообщение {message}")
     else:
         logging.debug(f"Бот отправил сообщение: {message}")
 
@@ -114,7 +113,7 @@ def check_response(response) -> None:
         if response.get("code") == "UnknownError":
             raise exceptions.PracticumRequestError("Неизвестная ошибка.")
     if not len(response.get("homeworks")):
-        raise exceptions.HomeworkListEmpty("Список домашних работ пуст.")
+        logging.debug("Список домашних работ пуст.")
 
 
 def parse_status(homework) -> str:
