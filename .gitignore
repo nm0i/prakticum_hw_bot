@@ -153,3 +153,4 @@ media/
 
 .envrc
 .direnv
+.last_success
