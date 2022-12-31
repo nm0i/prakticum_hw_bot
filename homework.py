@@ -3,7 +3,6 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import requests
 import telegram
@@ -19,9 +18,9 @@ TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID")
 
 RETRY_PERIOD: int = 600
 ENDPOINT: str = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
-HEADERS: Dict[str, str] = {"Authorization": f"OAuth {PRACTICUM_TOKEN}"}
+HEADERS: dict[str, str] = {"Authorization": f"OAuth {PRACTICUM_TOKEN}"}
 
-HOMEWORK_VERDICTS: Dict[str, str] = {
+HOMEWORK_VERDICTS: dict[str, str] = {
     "approved": "Работа проверена: ревьюеру всё понравилось.",
     "reviewing": "Работа взята на проверку ревьюером.",
     "rejected": "Работа проверена: у ревьюера есть замечания.",
@@ -30,7 +29,7 @@ HOMEWORK_VERDICTS: Dict[str, str] = {
 
 def check_tokens() -> bool:
     """Проверка наличия обязательных переменных окружения."""
-    env_list: Tuple[str] = (
+    env_list: tuple[str] = (
         "PRACTICUM_TOKEN",
         "TELEGRAM_TOKEN",
         "TELEGRAM_CHAT_ID"
@@ -49,7 +48,7 @@ def send_message(bot, message: str) -> None:
         logging.debug(f"Бот отправил сообщение: {message}")
 
 
-def get_api_answer(timestamp: int) -> Dict:
+def get_api_answer(timestamp: int) -> dict:
     """Получить ответ от практикума."""
     requests_params = {
         "headers": {"Authorization": f"OAuth {PRACTICUM_TOKEN}"},
@@ -86,9 +85,9 @@ def get_api_answer(timestamp: int) -> Dict:
 
 def check_response(response) -> None:
     """Проверка наличия домашних работ в ответе от практикума."""
-    if not isinstance(response, Dict):
+    if not isinstance(response, dict):
         raise TypeError
-    if not isinstance(response.get("homeworks"), List):
+    if not isinstance(response.get("homeworks"), list):
         raise TypeError
     if "code" in response:
         if response.get("code") == "not_authenticated":
@@ -137,9 +136,9 @@ def main():
         last_successful_check: int = 0
 
     try:
-        practicum_response: Dict = get_api_answer(last_successful_check)
+        practicum_response: dict = get_api_answer(last_successful_check)
         check_response(practicum_response)
-        homeworks: List = practicum_response.get("homeworks")
+        homeworks: list = practicum_response.get("homeworks")
         for homework in homeworks:
             log_message: str = parse_status(homework)
             send_message(bot, log_message)
