@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import time
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import requests
@@ -25,24 +26,6 @@ HOMEWORK_VERDICTS: Dict[str, str] = {
     "reviewing": "Работа взята на проверку ревьюером.",
     "rejected": "Работа проверена: у ревьюера есть замечания.",
 }
-
-
-class TelegramFilter(logging.Filter):
-    """Класс фильтра для отправки ошибок в телеграм."""
-
-    last_message: str = ""
-
-    def __init__(self, bot):
-        """Инициализация фильтра для логов."""
-        self.bot = bot
-
-    def filter(self, record):
-        """Правило фильтра."""
-        if (record.levelno == logging.ERROR
-                and self.last_message != record.msg):
-            send_message(self.bot, record.msg)
-            self.last_message = record.msg
-        return True
 
 
 def check_tokens() -> bool:
@@ -142,25 +125,35 @@ def main():
         os._exit(0)
 
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    logger.addFilter(TelegramFilter(bot))
 
-    last_successful_check: int = int(time.time()) - RETRY_PERIOD
-    logging.debug("Входим в главный цыкл.")
-    while True:
+    lsc_path: Path = (Path(__file__).parent / ".last_success").resolve()
+
+    try:
+        with open(str(lsc_path), "r") as success_stamp:
+            last_successful_check: int = int(success_stamp.read())
+    except FileNotFoundError:
+        log_message = "Файл с последним обращением не существует"
+        logging.debug(log_message)
+        last_successful_check: int = 0
+
+    try:
+        practicum_response: Dict = get_api_answer(last_successful_check)
+        check_response(practicum_response)
+        homeworks: List = practicum_response.get("homeworks")
+        for homework in homeworks:
+            log_message: str = parse_status(homework)
+            send_message(bot, log_message)
+    except Exception as error:
+        log_message = f"Сбой в работе программы: {str(error)}"
+        logging.error(log_message)
+    else:
         try:
-            practicum_response: Dict = get_api_answer(last_successful_check)
-            check_response(practicum_response)
-            homeworks: List = practicum_response.get("homeworks")
-            for homework in homeworks:
-                log_message: str = parse_status(homework)
-                send_message(bot, log_message)
+            with open(str(lsc_path), "w") as success_stamp:
+                last_successful_check = int(time.time())
+                success_stamp.write(str(last_successful_check))
         except Exception as error:
             log_message = f"Сбой в работе программы: {str(error)}"
             logging.error(log_message)
-        else:
-            last_successful_check = int(time.time())
-
-        time.sleep(RETRY_PERIOD)
 
 
 if __name__ == "__main__":
