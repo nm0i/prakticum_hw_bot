@@ -22,7 +22,7 @@ ENDPOINT: str = "https://practicum.yandex.ru/api/user_api/homework_statuses/"
 HEADERS: Dict[str, str] = {"Authorization": f"OAuth {PRACTICUM_TOKEN}"}
 
 HOMEWORK_VERDICTS: Dict[str, str] = {
-    "approved": "Работа проверена: ревьюеру всё понравилось. Ура!",
+    "approved": "Работа проверена: ревьюеру всё понравилось.",
     "reviewing": "Работа взята на проверку ревьюером.",
     "rejected": "Работа проверена: у ревьюера есть замечания.",
 }
